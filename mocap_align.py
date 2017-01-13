@@ -23,19 +23,15 @@ def mocap_align_abs(data1,data2,ball) :
 	# pos3 for balls board in second room
 	pos3 = np.array([-3.6420,5.0994-2.44/2,2.1465-1.22/2])*100
 	
-	# Offsets
-	#~ pos1 = pos1 - np.array([0.0447,0,1.3750]) # PI offset
-	#~ pos2 = pos2 - np.array([0.75,0,1.5]) # Viseur offset
-	
 	# Computes position of the three balls
 	posred = pos3
 	posempty = pos3 + np.array([0,61,0])
 	posfeather = pos3 - np.array([0,61,0])
-	if ball == 'red' :
+	if ball == 'Red' :
 		pos3 = posred
-	elif ball == 'feather' :
+	elif ball == 'Feather' :
 		pos3 = posfeather
-	elif ball == 'empty' :
+	elif ball == 'Empty' :
 		pos3 = posempty
 	else :
 		return
@@ -47,12 +43,15 @@ def mocap_align_abs(data1,data2,ball) :
 	
 	return ang1
 	
-
-if __name__ == '__main__':
+	
+def main() :
 	# In order PI viseur cible
 	body1 = mocap_extract(sys.argv[1]+'.csv')
 	body2 = mocap_extract(sys.argv[2]+'.csv')
 	ang = mocap_align_abs(body1,body2,sys.argv[3]) 
 	print('Angle erreur : {0}'.format(ang))
+	
+if __name__ == '__main__':
+	main()
 		 
 
