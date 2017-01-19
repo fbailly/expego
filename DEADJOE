@@ -1,0 +1,23 @@
+
+*** These modified files were found in JOE when it aborted on Fri Jan 13 17:37:47 2017
+*** JOE was aborted by UNIX signal 15
+
+*** Fichier '(Sans nom)'
+/home/fbailly/expego/.git/COMMIT_EDITMSG
+
+*** Fichier '/home/fbailly/expego/.git/COMMIT_EDITMSG'
+test 2
+# Veuillez saisir le message de validation pour vos modifications. Les lignes
+# commençant par '#' seront ignorées, et un message vide abandonne la validation.
+# Sur la branche master
+ Votre branche est à jour avec 'origin/master'.
+#
+# Modifications qui seront validées :
+#	modifié :         read_results.py
+#
+
+*** Fichier '* Startup Log *'
+Processing '/etc/joe/editorrc'...
+Processing '/etc/joe/ftyperc'...
+Finished processing /etc/joe/ftyperc
+Finished processing /etc/joe/editorrc
