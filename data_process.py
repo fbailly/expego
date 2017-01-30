@@ -13,7 +13,7 @@ def get_subject() :
 	return subject_id
 
 def extract_data(subject_id) :
-	directory = '~/catkin_ws/src/mocap/data/'+subject_id+'/'
+	directory = '~/expego/data/'+subject_id+'/'
 	directory = os.path.expanduser(directory)
 	if 'results.txt' in os.listdir(directory):
 				print('\nresults already computed. Go ahead ? ([y],n)\n______')
