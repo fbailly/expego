@@ -159,7 +159,7 @@ class GuiMocap :
 
 	
 	def set_directory(self,subject_id,PI_id,session_nb,target_id) :
-		self.directory = '~/catkin_ws/src/mocap/data/'+self.subject_id+'/'+self.PI_id+'/'+self.target_id+'/'+self.session_nb+'/'
+		self.directory = '~/expego/data/'+self.subject_id+'/'+self.PI_id+'/'+self.target_id+'/'+self.session_nb+'/'
 		self.os_directory = os.path.expanduser(self.directory)
 		print('______\n\nPerforming motion capture for :\nSubject : {0}\nPI : {1}\nTarget : {2}\nSession : {3}\n______'.format(subject_id,PI_id,target_id,session_nb))
 		print('\n'+self.os_directory+'\n')
@@ -167,8 +167,8 @@ class GuiMocap :
 			print('session already created, erase it ? ([y], n)')
 			ans = raw_input()
 			if ans == 'n' :
-				session_nb = str(max((list(map(int,os.listdir(os.path.expanduser('~/catkin_ws/src/mocap/data/'+subject_id+'/'+PI_id+'/'+target_id))))))+1)
-				self.directory = '~/catkin_ws/src/mocap/data/'+subject_id+'/'+PI_id+'/'+target_id+'/'+session_nb+'/'
+				session_nb = str(max((list(map(int,os.listdir(os.path.expanduser('~/expego/data/'+subject_id+'/'+PI_id+'/'+target_id))))))+1)
+				self.directory = '~/expego/data/'+subject_id+'/'+PI_id+'/'+target_id+'/'+session_nb+'/'
 				self.os_directory = os.path.expanduser(self.directory)
 				os.makedirs(self.os_directory)
 			else :

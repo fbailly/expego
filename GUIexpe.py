@@ -13,6 +13,7 @@ from mocap_align import mocap_extract, mocap_align_abs
 	
 def main(argv) :
 	subject_id = argv[1]
+	#~ session_id = argv[2]
 	gui1 = GuiMocap('gui1')
 	gui1.display_GUI(subject_id)
 	subject_id = gui1.subject_id
