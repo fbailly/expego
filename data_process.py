@@ -34,7 +34,6 @@ def extract_data(subject_id) :
 					ang = mocap_align_abs(body1,body2,ball_type)
 					result_line = (filename+','+ball_type+','+session+','+str(ang)+'\n')
 					results.write(result_line)
-		else : break
 	results.close
 
 

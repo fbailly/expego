@@ -24,7 +24,7 @@ balls_centersz = [1.5372971483,1.5314543185,1.5339595827]
 def get_subject() :
 	print('______\n\nsujet :')
 	subject_id = raw_input()
-	directory = '~/catkin_ws/src/mocap/data/'+subject_id+'/'
+	directory = '~/expego/data/'+subject_id+'/'
 	directory = os.path.expanduser(directory)
 	if not ('results.txt' in os.listdir(directory)):
 		print('\nresults seems not to be already computed...\n______')
