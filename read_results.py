@@ -133,7 +133,53 @@ def display_results_PI (subject_id,PI_id) :
 						if not os.path.exists('results/'+subject_id):
 							os.makedirs('results/'+subject_id)
 						plt.savefig('results/'+subject_id+'/'+PI_id+'.pdf')
+def save_results(subject_id) :
 	
+	directory = '~/expego/data/'+subject_id
+	directory = os.path.expanduser(directory)
+	if not ('results.txt' in os.listdir(directory)):
+		print('\nresults seems not to be already computed...\n______')
+		return
+
+	for PI_id in os.listdir(directory) :
+		if os.path.isdir(directory+'/'+PI_id) :
+			#~ balls_centersy = [5.0994-2.44/2,5.0994-2.44/2+0.61,5.0994-2.44/2-0.61]
+			#~ balls_centersz = [2.1465-1.22/2,2.1465-1.22/2,2.1465-1.22/2]
+			plt.plot(balls_centersy[0],balls_centersz[0],'go',markersize=40)
+			plt.plot(balls_centersy[1],balls_centersz[1],'ro',markersize=40)
+			plt.plot(balls_centersy[2],balls_centersz[2],'ko',markersize=40)
+			plt.axis([2,6,0,3])		
+			for balltype in os.listdir(directory+'/'+PI_id) :		
+				balltypeminuscule = balltype.lower()
+				if balltypeminuscule == 'red' :
+					ballnb = 1
+					colorflag = 'rx'
+				elif balltypeminuscule == 'empty' :
+					ballnb = 2
+					colorflag = 'kx'
+				elif balltypeminuscule == 'feather' :
+					ballnb = 0
+					colorflag = 'gx'
+				for sessionname in os.listdir(directory+'/'+PI_id+'/'+balltype) :
+					result_id = PI_id+','+balltype+','+sessionname
+					print(result_id)
+					with open(directory+'/results.txt','r') as results :
+						for line in results :
+							if result_id in  line :
+								resultline = line.rsplit(',')
+								resultline[-1] = resultline[-1].strip()
+								ang = float(resultline[-1])
+								print('Angle erreur : {0}'.format(ang))
+								body_PI = mocap_extract(directory+'/'+PI_id+'/'+balltype+'/'+sessionname+'/'+'PI'+'.csv')
+								body_viseur = mocap_extract(directory+'/'+PI_id+'/'+balltype+'/'+sessionname+'/'+'viseur'+'.csv')
+								#~ embed()
+								dy,dz = mocap_intercept(body_PI,body_viseur,balltype)
+								print('Deviation Y : {0}\nDeviation Z : {1}'.format(dy,dz))
+								plt.plot(balls_centersy[ballnb]+dy,balls_centersz[ballnb]+dz,colorflag,markersize=35)
+								if not os.path.exists('results/'+subject_id):
+									os.makedirs('results/'+subject_id)
+								plt.savefig('results/'+subject_id+'/'+PI_id+'.pdf')
+		plt.show()
 	
 def mocap_intercept(body_PI,body_viseur,ball) :
 	# Computes positions of viseur and PI in cm
@@ -175,11 +221,12 @@ def mocap_intercept(body_PI,body_viseur,ball) :
 
 if __name__ == '__main__':
 	subject_id = get_subject()
-	while 1 :
-		PI_id = get_PI(subject_id)
-		print('______\nReading results for : {0} and {1}\n______'.format(subject_id,PI_id))
-		display_results_PI(subject_id,PI_id)
-		plt.show()
+	save_results(subject_id)
+	#~ while 1 :
+		#~ PI_id = get_PI(subject_id)
+		#~ print('______\nReading results for : {0} and {1}\n______'.format(subject_id,PI_id))
+		#~ display_results_PI(subject_id,PI_id)
+		#~ plt.show()
 	#~ display_results(subject_id)
 	#~ print('\continue drawing ? ([y],n)')
 	#~ ans  = raw_input()
