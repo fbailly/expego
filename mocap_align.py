@@ -4,7 +4,12 @@ import numpy as np
 import csv
 import sys
 from IPython import embed
-
+global mes_bplume
+global mes_brouge
+global mes_bvide
+mes_bplume = np.array([-3.6004087458,3.3680321189,1.5372971483])*100
+mes_brouge = np.array([-3.6178109599,3.9675009516,1.5314543185])*100
+mes_bvide = np.array([-3.6363492807,4.5560661391,1.5339595827])*100
 def mocap_extract(filename) :
 	with open(filename, 'rb') as csvfile:
 		spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
@@ -21,12 +26,12 @@ def mocap_align_abs(data1,data2,ball) :
 	pos2 = np.array([np.mean(data2[:,0]),np.mean(data2[:,1]),np.mean(data2[:,2])])*100
 
 	# pos3 for balls board in second room
-	pos3 = np.array([-3.6420,5.0994-2.44/2,2.1465-1.22/2])*100
+	#~ pos3 = np.array([-3.6420,5.0994-2.44/2,2.1465-1.22/2])*100
 	
 	# Computes position of the three balls
-	posred = pos3
-	posempty = pos3 + np.array([0,61,0])
-	posfeather = pos3 - np.array([0,61,0])
+	posred = mes_brouge
+	posempty = mes_bvide
+	posfeather = mes_bplume
 	if ball == 'Red' :
 		pos3 = posred
 	elif ball == 'Feather' :
