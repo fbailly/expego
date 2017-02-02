@@ -1,0 +1,120 @@
+#!/usr/bin/env python
+import rospy
+import sys
+import os
+import message_filters
+from IPython import embed
+import matplotlib.pyplot as plt
+import numpy as np
+from mocap_align import mocap_extract, mocap_align_abs
+from read_results import mocap_intercept, get_PI, get_subject
+
+global balls_centersy
+global balls_centersx
+global mes_bplume
+global mes_brouge
+global mes_bvide
+mes_bplume = np.array([-3.6004087458,3.3680321189,1.5372971483])
+mes_brouge = np.array([-3.6178109599,3.9675009516,1.5314543185])
+mes_bvide = np.array([-3.6363492807,4.5560661391,1.5339595827])
+balls_centersy = [3.3680321189,3.9675009516,4.5560661391]
+balls_centersz = [1.5372971483,1.5314543185,1.5339595827]
+
+def get_structure(dys,dzs,plotflag) :
+	centerfeather = mes_bplume + np.array([0,dys[0],dzs[0]])	
+	centerred = mes_brouge + np.array([0,dys[1],dzs[1]])
+	centerempty = mes_bvide + np.array([0,dys[2],dzs[2]])
+	vfeatherred =  centerred - centerfeather
+	vfeatherempty = centerempty - centerfeather 
+	alignment = np.arccos(np.dot(vfeatherred,vfeatherempty)/np.linalg.norm(vfeatherred)/np.linalg.norm(vfeatherempty))
+	aligned_red = centerfeather + np.linalg.norm(vfeatherred)*np.cos(alignment)*vfeatherempty/np.linalg.norm(vfeatherempty)
+	dfr = np.linalg.norm(aligned_red-centerfeather)
+	dre = np.linalg.norm(centerempty - aligned_red)
+	if plotflag == 1 :
+		plt.plot(balls_centersy[0],balls_centersz[0],'go',markersize=40)
+		plt.plot(balls_centersy[1],balls_centersz[1],'ro',markersize=40)
+		plt.plot(balls_centersy[2],balls_centersz[2],'ko',markersize=40)
+		plt.plot(balls_centersy[0]+dys[0],balls_centersz[0]+dzs[0],'gx',markersize=45)
+		plt.plot(balls_centersy[1]+dys[1],balls_centersz[1]+dzs[1],'rx',markersize=45)
+		plt.plot(balls_centersy[2]+dys[2],balls_centersz[2]+dzs[2],'kx',markersize=45)
+		plt.plot(aligned_red[1],aligned_red[2],'bx',markersize=45)
+		plt.axis([2,6,0,3])	
+		plt.show()
+	alignment_grade = abs((np.pi/2-alignment))/(np.pi/2)*100
+	distanceg_grade = 0.6/(0.6+abs(dfr-0.6))*100
+	distanced_grade = 0.6/(0.6+abs(dre-0.6))*100
+	return alignment_grade,distanceg_grade,distanced_grade	
+
+def get_deviations(directory,session) :
+	dys =  np.array([0.,0.,0.])
+	dzs =  np.array([0.,0.,0.])
+	for balltype in os.listdir(directory) :
+		body_PI = mocap_extract(directory+'/'+balltype+'/'+session+'/'+'PI'+'.csv')
+		body_viseur = mocap_extract(directory+'/'+balltype+'/'+session+'/'+'viseur'+'.csv')
+		dy,dz = mocap_intercept(body_PI,body_viseur,balltype)
+		if balltype == 'Feather' :
+			dys[0] = dy
+			dzs[0] = dz
+		elif balltype == 'Red' :
+			dys[1] = dy
+			dzs[1] = dz
+		elif balltype == 'Empty' :
+			dys[2] = dy
+			dzs[2] = dz
+	return dys,dzs
+	return dys,dzs
+	return dys,dzs
+	return dys,dzs
+	return dys,dzs
+	
+def save_grades(subject_id,directory,resultfile) :
+	cd_directory = os.path.expanduser('~/expego/data/')
+	os.chdir(cd_directory)
+	filename = 'results.csv'
+	if os.path.exists(filename):
+		results = open(cd_directory+resultfile,'a')
+	else: 
+		results = open(cd_directory+resultfile,'w')
+		results.write('Sujets,Condition,Resultat\n')
+	plotflag = 0
+	directory = cd_directory+subject_id+'/'
+	for filename in os.listdir(directory):
+			PI_directory = directory+filename
+			if os.path.isdir(PI_directory) :
+				for session in ['1','2','3','4'] :
+					try :
+						dys,dzs = get_deviations(PI_directory,session)
+						dys,dzs = get_deviations(PI_directory,session)
+						alignment_grade,distanceg_grade,distanced_grade	= get_structure(dys,dzs,plotflag)
+						results.write(subject_id+','+filename+','+str(alignment_grade+distanceg_grade+distanced_grade)+'\n')
+					except :
+						pass
+	results.close
+	
+	
+		
+def display_grades(directory) :
+	plotflag = 0
+	for filename in os.listdir(directory):
+			PI_directory = directory+filename
+			if os.path.isdir(PI_directory) :
+				for session in ['1','2','3','4'] :
+					try :
+						dys,dzs = get_deviations(PI_directory,session)
+						dys,dzs = get_deviations(PI_directory,session)
+						alignment_grade,distanceg_grade,distanced_grade	= get_structure(dys,dzs,plotflag)
+						print(alignment_grade,distanceg_grade,distanced_grade,alignment_grade+distanceg_grade+distanced_grade)
+						print(filename,session)
+						
+					except :
+						pass
+
+def main(argv) :
+	subject_id = get_subject()
+	directory = '~/expego/data/'+subject_id+'/'
+	directory = os.path.expanduser(directory)
+	display_grades(directory)
+	save_grades(subject_id,directory,'results.csv')
+				
+if __name__ == '__main__':
+	main(sys.argv)

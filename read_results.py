@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-# test git
-#test 2 git 
+
 import rospy
 import sys
 import os
