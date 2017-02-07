@@ -34,7 +34,7 @@ class GuiMocap :
 		self.listener()
 		self.fenetre.destroy()
 		
-	def display_GUI(self,sub_name='Entrer sujet') :
+	def display_GUI(self,sub_name='Entrer sujet',session_nb='1') :
 		
 		self.fenetre = Tk()
 		self.fenetre['bg']='white'
@@ -73,7 +73,9 @@ class GuiMocap :
 		self.listePI.pack()
 		
 		# numero de session
-		self.session_num = Spinbox(f7, from_=1, to=10)
+		var = StringVar(f7)
+		var.set(str(session_nb))
+		self.session_num = Spinbox(f7, from_=1, to=10, textvariable=var)
 		self.session_num.pack()
 		
 		# liste des cibles

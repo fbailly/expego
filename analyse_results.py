@@ -28,8 +28,9 @@ def get_structure(dys,dzs,plotflag) :
 	vfeatherempty = centerempty - centerfeather 
 	alignment = np.arccos(np.dot(vfeatherred,vfeatherempty)/np.linalg.norm(vfeatherred)/np.linalg.norm(vfeatherempty))
 	aligned_red = centerfeather + np.linalg.norm(vfeatherred)*np.cos(alignment)*vfeatherempty/np.linalg.norm(vfeatherempty)
-	dfr = np.linalg.norm(aligned_red-centerfeather)
+	dfr = np.linalg.norm(aligned_red - centerfeather)
 	dre = np.linalg.norm(centerempty - aligned_red)
+	print(dfr,dre)
 	if plotflag == 1 :
 		plt.plot(balls_centersy[0],balls_centersz[0],'go',markersize=40)
 		plt.plot(balls_centersy[1],balls_centersz[1],'ro',markersize=40)
@@ -40,10 +41,11 @@ def get_structure(dys,dzs,plotflag) :
 		plt.plot(aligned_red[1],aligned_red[2],'bx',markersize=45)
 		plt.axis([2,6,0,3])	
 		plt.show()
-	alignment_grade = abs((np.pi/2-alignment))/(np.pi/2)*100
+	alignment_grade = (np.pi/2-abs(alignment))/(np.pi/2)*100
+	ecartement_grade = 1/(1+abs(dfr-dre))*100
 	distanceg_grade = 0.6/(0.6+abs(dfr-0.6))*100
 	distanced_grade = 0.6/(0.6+abs(dre-0.6))*100
-	return alignment_grade,distanceg_grade,distanced_grade	
+	return alignment_grade,distanceg_grade,distanced_grade,ecartement_grade
 
 def get_deviations(directory,session) :
 	dys =  np.array([0.,0.,0.])
@@ -67,15 +69,21 @@ def get_deviations(directory,session) :
 	return dys,dzs
 	return dys,dzs
 	
-def save_grades(subject_id,directory,resultfile) :
+def save_grades(subject_id,directory,later_id) :
 	cd_directory = os.path.expanduser('~/expego/data/')
 	os.chdir(cd_directory)
 	filename = 'results.csv'
+	filename2 = 'results_dbg.csv'
 	if os.path.exists(filename):
-		results = open(cd_directory+resultfile,'a')
+		results = open(cd_directory+filename,'a')
 	else: 
-		results = open(cd_directory+resultfile,'w')
+		results = open(cd_directory+filename,'w')
 		results.write('Sujets,Condition,Resultat\n')
+	if os.path.exists(filename2):
+		results_dbg = open(cd_directory+filename2,'a')
+	else: 
+		results_dbg = open(cd_directory+filename2,'w')
+		results_dbg.write('Sujets,Condition,Score alignement,Score ecartement\n')
 	plotflag = 0
 	directory = cd_directory+subject_id+'/'
 	for filename in os.listdir(directory):
@@ -85,8 +93,16 @@ def save_grades(subject_id,directory,resultfile) :
 					try :
 						dys,dzs = get_deviations(PI_directory,session)
 						dys,dzs = get_deviations(PI_directory,session)
-						alignment_grade,distanceg_grade,distanced_grade	= get_structure(dys,dzs,plotflag)
-						results.write(subject_id+','+filename+','+str(alignment_grade+distanceg_grade+distanced_grade)+'\n')
+						print(PI_directory,session)
+						alignment_grade,distanceg_grade,distanced_grade,ecartement_grade = get_structure(dys,dzs,plotflag)
+						if later_id == 'D' :
+							filename = filename[:-1]+filename[-1].replace('D','Dom')
+							filename = filename[:-1]+filename[-1].replace('G','Opp')
+						if later_id == 'G' :
+							filename = filename[:-1]+filename[-1].replace('D','Opp')
+							filename = filename[:-1]+filename[-1].replace('G','Dom')
+						results.write(subject_id+','+filename+','+str(alignment_grade+ecartement_grade)+'\n')
+						results_dbg.write(subject_id+','+filename+','+str(alignment_grade)+','+str(ecartement_grade)+'\n')
 					except :
 						pass
 	results.close
@@ -108,13 +124,24 @@ def display_grades(directory) :
 						
 					except :
 						pass
+						
+						
+def get_later() :
+	print('______\n\nlateralisation : G/D ?')
+	later_id = raw_input()
+	while later_id != 'G' and later_id != 'D' :
+		print('______\n\nlateralisation : G/D ?')
+		later_id = raw_input()
+		print(later_id)
+	return later_id			
 
 def main(argv) :
 	subject_id = get_subject()
+	later_id = get_later()
 	directory = '~/expego/data/'+subject_id+'/'
 	directory = os.path.expanduser(directory)
-	display_grades(directory)
-	save_grades(subject_id,directory,'results.csv')
+	#~ display_grades(directory)
+	save_grades(subject_id,directory,later_id)
 				
 if __name__ == '__main__':
 	main(sys.argv)

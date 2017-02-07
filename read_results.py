@@ -42,6 +42,11 @@ def get_PI(subject_id) :
 		PI_id = raw_input();
 	return PI_id
 
+def get_session_nb() :
+	print('______\n\nSession number :')
+	session_nb = raw_input();
+	return session_nb
+
 def display_results(subject_id) :
 	
 	#~ balls_centersy = [5.0994-2.44/2,5.0994-2.44/2+0.61,5.0994-2.44/2-0.61]
@@ -90,7 +95,7 @@ def display_results(subject_id) :
 	print('Deviation Y : {0}\nDeviation Z : {1}'.format(dy,dz))
 	plt.plot(balls_centersy[ballnb]+dy/100,balls_centersz[ballnb]+dz/100,colorflag,markersize=50)
 
-def display_results_PI (subject_id,PI_id) :
+def display_results_PI (subject_id,PI_id,session_nb) :
 	directory = '~/expego/data/'+subject_id
 	directory = os.path.expanduser(directory)
 	if not ('results.txt' in os.listdir(directory)):
@@ -101,7 +106,7 @@ def display_results_PI (subject_id,PI_id) :
 	plt.plot(balls_centersy[0],balls_centersz[0],'go',markersize=40)
 	plt.plot(balls_centersy[1],balls_centersz[1],'ro',markersize=40)
 	plt.plot(balls_centersy[2],balls_centersz[2],'ko',markersize=40)
-	plt.axis([2,6,0,3])		
+	plt.axis([0,6,0,5])		
 	for balltype in os.listdir(directory+'/'+PI_id) :		
 		balltypeminuscule = balltype.lower()
 		if balltypeminuscule == 'red' :
@@ -113,7 +118,7 @@ def display_results_PI (subject_id,PI_id) :
 		elif balltypeminuscule == 'feather' :
 			ballnb = 0
 			colorflag = 'gx'
-		for sessionname in os.listdir(directory+'/'+PI_id+'/'+balltype) :
+		for sessionname in session_nb :
 			result_id = PI_id+','+balltype+','+sessionname
 			print(result_id)
 			with open(directory+'/results.txt','r') as results :
@@ -215,35 +220,36 @@ def mocap_intercept(body_PI,body_viseur,ball) :
 
 	return dy,dz
 
-
-	
+def main(argv) :
+	subject_id = get_subject()
+	#~ save_results(subject_id)
+	while 1 :
+		PI_id = get_PI(subject_id)
+		session_nb = get_session_nb();
+		print('______\nReading results for : {0} and {1}\n______'.format(subject_id,PI_id))
+		display_results_PI(subject_id,PI_id,session_nb)
+		plt.show()
+	display_results(subject_id)
+	print('\continue drawing ? ([y],n)')
+	ans  = raw_input()
+	if ans == 'n' :
+		plt.show()
+		sys.exit()
+	else : continue_drawing = 1
+	while continue_drawing == 1 :
+		subject_id = get_subject()
+		print('______\nReading results for : {0}\n______'.format(subject_id))
+		display_results(subject_id)
+		print('\continue drawing ? ([y],n)')
+		ans  = raw_input()
+		if ans == 'n' :
+			plt.show()
+			sys.exit()
+		else : continue_drawing = 1
 
 if __name__ == '__main__':
-	subject_id = get_subject()
-	save_results(subject_id)
-	#~ while 1 :
-		#~ PI_id = get_PI(subject_id)
-		#~ print('______\nReading results for : {0} and {1}\n______'.format(subject_id,PI_id))
-		#~ display_results_PI(subject_id,PI_id)
-		#~ plt.show()
-	#~ display_results(subject_id)
-	#~ print('\continue drawing ? ([y],n)')
-	#~ ans  = raw_input()
-	#~ if ans == 'n' :
-		#~ plt.show()
-		#~ sys.exit()
-	#~ else : continue_drawing = 1
-	#~ while continue_drawing == 1 :
-		#~ subject_id = get_subject()
-		#~ print('______\nReading results for : {0}\n______'.format(subject_id))
-		#~ display_results(subject_id)
-		#~ print('\continue drawing ? ([y],n)')
-		#~ ans  = raw_input()
-		#~ if ans == 'n' :
-			#~ plt.show()
-			#~ sys.exit()
-		#~ else : continue_drawing = 1
-	
+	main(sys.argv)
+
 	
 		
 	
