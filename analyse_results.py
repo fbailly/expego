@@ -2,6 +2,7 @@
 import rospy
 import sys
 import os
+import math
 import message_filters
 from IPython import embed
 import matplotlib.pyplot as plt
@@ -20,7 +21,7 @@ mes_bvide = np.array([-3.6363492807,4.5560661391,1.5339595827])
 balls_centersy = [3.3680321189,3.9675009516,4.5560661391]
 balls_centersz = [1.5372971483,1.5314543185,1.5339595827]
 
-def get_structure(dys,dzs,plotflag) :
+def old_get_structure(dys,dzs,plotflag) :
 	centerfeather = mes_bplume + np.array([0,dys[0],dzs[0]])	
 	centerred = mes_brouge + np.array([0,dys[1],dzs[1]])
 	centerempty = mes_bvide + np.array([0,dys[2],dzs[2]])
@@ -46,10 +47,27 @@ def get_structure(dys,dzs,plotflag) :
 	distanceg_grade = 0.6/(0.6+abs(dfr-0.6))*100
 	distanced_grade = 0.6/(0.6+abs(dre-0.6))*100
 	return alignment_grade,distanceg_grade,distanced_grade,ecartement_grade
+	
+def new_get_structure(pos_viseur,pos_PI) :
+	vec_feather = pos_viseur[0,:]-pos_PI[0,:]	
+	vec_red = pos_viseur[1,:]-pos_PI[1,:]	
+	vec_empty = pos_viseur[2,:]-pos_PI[2,:]	
+	ang_feather_red = math.atan2(np.linalg.norm(np.cross(vec_feather,vec_red)), np.dot(vec_feather,vec_red))
+	ang_red_empty = math.atan2(np.linalg.norm(np.cross(vec_red,vec_empty)), np.dot(vec_red,vec_empty));
+	score_sym = (np.pi/2-abs(ang_feather_red-ang_red_empty))/(np.pi/2)*100
+	plane_normal = np.cross(vec_feather,vec_empty);
+	ang_align = abs(np.pi/2 - math.acos(np.dot(vec_red,plane_normal)/np.linalg.norm(plane_normal)/np.linalg.norm(vec_red)));
+	print(ang_align)
+	score_align = abs(np.pi/2-ang_align)/(np.pi/2)*100
+	print(score_align)
+	print(score_sym)
+	return score_align,score_sym
 
 def get_deviations(directory,session) :
 	dys =  np.array([0.,0.,0.])
 	dzs =  np.array([0.,0.,0.])
+	pos_viseur = np.zeros((3,3))
+	pos_PI = np.zeros((3,3))
 	for balltype in os.listdir(directory) :
 		body_PI = mocap_extract(directory+'/'+balltype+'/'+session+'/'+'PI'+'.csv')
 		body_viseur = mocap_extract(directory+'/'+balltype+'/'+session+'/'+'viseur'+'.csv')
@@ -57,17 +75,20 @@ def get_deviations(directory,session) :
 		if balltype == 'Feather' :
 			dys[0] = dy
 			dzs[0] = dz
+			pos_viseur[0,:] = np.array([np.mean(body_viseur[:,0]),np.mean(body_viseur[:,1]),np.mean(body_viseur[:,2])])
+			pos_PI[0,:] = np.array([np.mean(body_PI[:,0]),np.mean(body_PI[:,1]),np.mean(body_PI[:,2])])
 		elif balltype == 'Red' :
 			dys[1] = dy
 			dzs[1] = dz
+			pos_viseur[1,:] = np.array([np.mean(body_viseur[:,0]),np.mean(body_viseur[:,1]),np.mean(body_viseur[:,2])])
+			pos_PI[1,:] = np.array([np.mean(body_PI[:,0]),np.mean(body_PI[:,1]),np.mean(body_PI[:,2])])
 		elif balltype == 'Empty' :
 			dys[2] = dy
 			dzs[2] = dz
-	return dys,dzs
-	return dys,dzs
-	return dys,dzs
-	return dys,dzs
-	return dys,dzs
+			pos_viseur[2,:] = np.array([np.mean(body_viseur[:,0]),np.mean(body_viseur[:,1]),np.mean(body_viseur[:,2])])
+			pos_PI[2,:] = np.array([np.mean(body_PI[:,0]),np.mean(body_PI[:,1]),np.mean(body_PI[:,2])])
+	return dys,dzs,pos_viseur,pos_PI
+
 	
 def save_grades(subject_id,directory,later_id) :
 	cd_directory = os.path.expanduser('~/expego/data/')
@@ -91,18 +112,18 @@ def save_grades(subject_id,directory,later_id) :
 			if os.path.isdir(PI_directory) :
 				for session in ['1','2','3','4'] :
 					try :
-						dys,dzs = get_deviations(PI_directory,session)
-						dys,dzs = get_deviations(PI_directory,session)
+						dys,dzs,pos_viseur,pos_PI = get_deviations(PI_directory,session)
 						print(PI_directory,session)
-						alignment_grade,distanceg_grade,distanced_grade,ecartement_grade = get_structure(dys,dzs,plotflag)
+						#~ alignment_grade,distanceg_grade,distanced_grade,ecartement_grade = get_structure(dys,dzs,plotflag)
+						score_align,score_sym = new_get_structure(pos_viseur,pos_PI)
 						if later_id == 'D' :
 							filename = filename[:-1]+filename[-1].replace('D','Dom')
 							filename = filename[:-1]+filename[-1].replace('G','Opp')
 						if later_id == 'G' :
 							filename = filename[:-1]+filename[-1].replace('D','Opp')
 							filename = filename[:-1]+filename[-1].replace('G','Dom')
-						results.write(subject_id+','+filename+','+str(alignment_grade+ecartement_grade)+'\n')
-						results_dbg.write(subject_id+','+filename+','+str(alignment_grade)+','+str(ecartement_grade)+'\n')
+						results.write(subject_id+','+filename+','+str(score_align)+'\n')
+						results_dbg.write(subject_id+','+filename+','+str(score_align)+','+str(score_sym)+'\n')
 					except :
 						pass
 	results.close
