@@ -1,0 +1,6 @@
+Tete,Red,1,13.1521767325
+Tete,Empty,1,9.99766282274
+Tete,Feather,1,14.8115636328
+EpauleG,Red,1,2.5965370216
+EpauleG,Empty,1,12.8785887941
+EpauleG,Feather,1,9.05516683491
