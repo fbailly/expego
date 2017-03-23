@@ -147,8 +147,8 @@ class GuiBirapp :
 	def listener(self):
 
 		rospy.init_node('listener', anonymous=True)
-		chat1_sub = message_filters.Subscriber('/optitrack/bodies/'+'Pipe', or_pose_estimator_state)
-		chat2_sub = message_filters.Subscriber('/optitrack/bodies/'+'TiltHex', or_pose_estimator_state)
+		chat1_sub = message_filters.Subscriber('/optitrack/bodies/'+'PI', or_pose_estimator_state)
+		chat2_sub = message_filters.Subscriber('/optitrack/bodies/'+'viseur', or_pose_estimator_state)
 		self.ts = message_filters.ApproximateTimeSynchronizer([chat1_sub, chat2_sub], 51,1, allow_headerless=True)
 		self.ts.registerCallback(self.mocap_callback)
 		rospy.spin()
