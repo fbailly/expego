@@ -9,7 +9,6 @@ from optitrack.msg import or_pose_estimator_state
 from std_msgs.msg import String
 from IPython import embed
 from birappGUI import GuiBirapp
-from mocap_align import mocap_extract, mocap_align_abs
 	
 def main(argv) :
 	subject_id = argv[1]

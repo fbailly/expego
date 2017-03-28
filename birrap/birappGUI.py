@@ -9,7 +9,6 @@ import message_filters
 from optitrack.msg import or_pose_estimator_state
 from std_msgs.msg import String
 from IPython import embed
-from mocap_align import mocap_extract, mocap_align_abs
 from Tkinter import * 
 
 class GuiBirapp :
@@ -30,12 +29,8 @@ class GuiBirapp :
 		# Frames
 		f1 = Frame(self.fenetre, bg="white",width=300,height=75)
 		f1.pack(side=TOP, fill=BOTH)
-		#~ f2 = Frame(self.fenetre, bg="white",width=100,height=150,padx=5,pady=5)
-		#~ f2.pack(side=RIGHT,expand=1,fill=BOTH)
 		f3 = Frame(self.fenetre, bg="white",width=100,height=150,padx=5,pady=5)
 		f3.pack(side=LEFT, expand=1,fill=BOTH)
-		#~ f4 = Frame(f2, bg="grey",width=150,height=25,)
-		#~ f4.pack(side=TOP,fill=X)
 		f5 = Frame(f3, bg="grey",width=150,height=25)
 		f5.pack(side=TOP,fill=X)
 		f6 = Frame(self.fenetre, bg="white",width=300,height=75)
@@ -92,7 +87,6 @@ class GuiBirapp :
 		
 	def get_select(self) :
 		self.PI_id = self.listePI.get(self.listePI.curselection())
-		#~ self.target_id = self.listeball.get(self.listeball.curselection())
 		self.subject_id = self.sub_frame.get()
 		self.session_nb = self.session_num.get()
 		print(self.subject_id,self.PI_id,self.session_nb)
@@ -155,7 +149,7 @@ class GuiBirapp :
 		
 
 	def set_directory(self,subject_id,PI_id,session_nb) :
-		self.directory = '~/expego/databirapp/'+self.subject_id+'/'+self.PI_id+'/'+self.session_nb+'/'
+		self.directory = '~/expego/birapp/databirapp/'+self.subject_id+'/'+self.PI_id+'/'+self.session_nb+'/'
 		self.os_directory = os.path.expanduser(self.directory)
 		print('______\n\nPerforming motion capture for :\nSubject : {0}\nPI : {1}\nSession : {2}\n______'.format(subject_id,PI_id,session_nb))
 		print('\n'+self.os_directory+'\n')
@@ -163,8 +157,8 @@ class GuiBirapp :
 			print('session already created, erase it ? ([y], n)')
 			ans = raw_input()
 			if ans == 'n' :
-				session_nb = str(max((list(map(int,os.listdir(os.path.expanduser('~/expego/databirapp/'+subject_id+'/'+PI_id))))))+1)
-				self.directory = '~/expego/databirapp/'+subject_id+'/'+PI_id+'/'+'/'+session_nb+'/'
+				session_nb = str(max((list(map(int,os.listdir(os.path.expanduser('~/expego/birapp/databirapp/'+subject_id+'/'+PI_id))))))+1)
+				self.directory = '~/expego/birapp/databirapp/'+subject_id+'/'+PI_id+'/'+'/'+session_nb+'/'
 				self.os_directory = os.path.expanduser(self.directory)
 				os.makedirs(self.os_directory)
 			else :
