@@ -163,7 +163,7 @@ class GuiBirapp :
 			print('session already created, erase it ? ([y], n)')
 			ans = raw_input()
 			if ans == 'n' :
-				session_nb = str(max((list(map(int,os.listdir(os.path.expanduser('~/expego/data/'+subject_id+'/'+PI_id))))))+1)
+				session_nb = str(max((list(map(int,os.listdir(os.path.expanduser('~/expego/databirapp/'+subject_id+'/'+PI_id))))))+1)
 				self.directory = '~/expego/databirapp/'+subject_id+'/'+PI_id+'/'+'/'+session_nb+'/'
 				self.os_directory = os.path.expanduser(self.directory)
 				os.makedirs(self.os_directory)
