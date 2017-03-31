@@ -224,11 +224,11 @@ def massive_check(subject) :
 			if os.path.isdir(PI_directory) :
 				for session in ['1','2'] :
 					try :
-					file_directory = PI_directory + '/' + session + '/' + viseur_file
-					print(file_directory)
-					viseur = mocap_extract(file_directory)
-					viseur_filt, viseur_speed_pb = viseur_filter(viseur)
-					points_extract_pos(viseur_filt,viseur_speed_pb)
+						file_directory = PI_directory + '/' + session + '/' + viseur_file
+						print(file_directory)
+						viseur = mocap_extract(file_directory)
+						viseur_filt, viseur_speed_pb = viseur_filter(viseur)
+						points_extract_pos(viseur_filt,viseur_speed_pb)
 					except :
 						pass
 					
@@ -244,7 +244,7 @@ def main(argv) :
 	#~ viseur_filt, viseur_speed_pb = viseur_filter(viseur)
 	#~ points_extract_speed(viseur_speed_pb)
 	#~ points_extract_pos(viseur_filt,viseur_speed_pb)
-	massive_check('flo')
+	massive_check('galo')
 	
 if __name__ == '__main__':
 	main(sys.argv)
