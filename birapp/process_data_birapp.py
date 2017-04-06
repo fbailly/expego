@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import matplotlib as mpl
 from mpl_toolkits.mplot3d import Axes3D
-from scipy.cluster.vq import kmeans
 from sklearn.cluster import KMeans
 
 def mocap_extract(filename) :
@@ -23,8 +22,8 @@ def mocap_extract(filename) :
 		datafile = datafile.astype(np.float)
 	return datafile
 	
-def PI_filter(datafile) :
-	plotflag = 0
+def PI_filter(datafile,ax) :
+	plotflag = 1
 	PIx = datafile[:,0]
 	PIy = datafile[:,1]
 	PIz = datafile[:,2]
@@ -36,15 +35,12 @@ def PI_filter(datafile) :
 	PIy_f_med = np.median(PIy_f)
 	PIz_f_med = np.median(PIz_f)
 	if plotflag :
-		fig = plt.figure()
-		ax = fig.gca(projection='3d')
 		ax.plot(PIx, PIy, PIz, label='PI pos')
 		ax.plot(PIx_f, PIy_f, PIz_f, label='PI pos')
 		ax.legend()
-		ax.scatter(PIx_f_med, PIy_f_med, PIz_f_med, label='PI pos',color='green')
-		plt.show()
+		ax.scatter(PIx_f_med, PIy_f_med, PIz_f_med, label='PI pos',color='green',s=200)
 	PI_med = np.array([PIx_f_med,PIy_f_med,PIz_f_med])
-	return PI_med
+	return ax,PI_med
 
 def pb_signal(data) :
 	P=7
@@ -146,32 +142,40 @@ def points_extract_speed(viseur_speed_pb) :
 	plt.title('Nombre d intervalles = {0}'.format(nb_int))
 	plt.plot(viseur_speed_pb)
 	plt.show()
-	embed()
 	return
 
-def points_extract_pos(viseur_filt,viseur_speed) :
+def points_extract_pos(viseur_filt,viseur_speed,Nkmean,plt_flag) :
 	# cluster 3D position
-	Nkmean = 8
+	#~ Nkmean = 8
 	est = KMeans(n_clusters=Nkmean)
 	est.fit(viseur_filt)
 	labels = est.labels_
 	fig = plt.figure(1,figsize=(4,3))
-	plt.clf()
 	ax = Axes3D(fig, rect=[0, 0, .95, 1], elev=48, azim=134)
-	ax.scatter(viseur_filt[:, 0], viseur_filt[:, 1], viseur_filt[:, 2], c=labels.astype(np.float))
-	ax.w_xaxis.set_ticklabels([])
-	ax.w_yaxis.set_ticklabels([])
-	ax.w_zaxis.set_ticklabels([])
-	ax.set_xlabel('X')
-	ax.set_ylabel('Y')
-	ax.set_zlabel('Z')
+	if plt_flag == True :
+		#~ plt.clf()
+		ax.scatter(viseur_filt[:, 0], viseur_filt[:, 1], viseur_filt[:, 2], c=labels.astype(np.float))
+		ax.w_xaxis.set_ticklabels([])
+		ax.w_yaxis.set_ticklabels([])
+		ax.w_zaxis.set_ticklabels([])
+		ax.set_xlabel('X')
+		ax.set_ylabel('Y')
+		ax.set_zlabel('Z')
 	cnt_labels = np.zeros((Nkmean))
 	for i in range(Nkmean) :
 		nb_labels_i = sum(labels == i)
 		cnt_labels[i] = nb_labels_i
 	idx_labels_sorted = np.argsort(cnt_labels)
 	idx_labels_sorted = idx_labels_sorted[::-1]
-	idx_pos = idx_labels_sorted[0:4]
+	idx_pos_unsorted = idx_labels_sorted[0:4]
+	# reorganizing idx_pos so that it is in order of pointing
+	idx_order = np.zeros(4)
+	for i in range(4) :
+		list_i = np.where(labels==idx_pos_unsorted[i])
+		idx_order[i] = list_i[0][len(list_i[0])//2]
+	idx_order_sorted = np.argsort(idx_order)
+	idx_pos = idx_pos_unsorted[idx_order_sorted]
+	# extract the four viseur areas
 	vis1 = viseur_filt[labels==idx_pos[0],:]
 	vis2 = viseur_filt[labels==idx_pos[1],:]
 	vis3 = viseur_filt[labels==idx_pos[2],:]
@@ -187,6 +191,7 @@ def points_extract_pos(viseur_filt,viseur_speed) :
 	i = 0
 	speeds = [vis1speed,vis2speed,vis3speed,vis4speed]
 	dots_colors = ['r','c','g','m']
+	# *********************************************************************TODO : condition the choice of the labels according to the speed
 	for vis in [vis1,vis2,vis3,vis4] :
 		if not vis.shape[0] %2 :
 			np.append(vis,np.array([[10000,10000,10000]]),axis=0)
@@ -196,55 +201,194 @@ def points_extract_pos(viseur_filt,viseur_speed) :
 		# check speed at estimated points
 		med_speed[i] = speeds[i][len(speeds[i])//2]
 		# display estimates of viseur positions
-		ax.scatter(med_vis[i,0],med_vis[i,1],med_vis[i,2],color=dots_colors[i],s=200)
+		if plt_flag == True :
+			ax.scatter(med_vis[i,0],med_vis[i,1],med_vis[i,2],color=dots_colors[i],s=200)
 		i += 1
-	
+	if plt_flag == True :
+		plt.figure()
+		plt.subplot(411)
+		plt.plot(vis1speed)
+		plt.axhline(y=med_speed[0], color='red', linestyle='-')
+		plt.subplot(412)
+		plt.plot(vis1[:,0])
+		plt.axhline(y=med_vis[0,0], color='red', linestyle='-')
+		plt.subplot(413)
+		plt.plot(vis1[:,1])
+		plt.axhline(y=med_vis[0,1], color='red', linestyle='-')
+		plt.subplot(414)
+		plt.plot(vis1[:,2])
+		plt.axhline(y=med_vis[0,2], color='red', linestyle='-')
+	return ax, med_vis
 
-	plt.figure()
-	plt.subplot(411)
-	plt.plot(vis1speed)
-	plt.axhline(y=med_speed[0], color='red', linestyle='-')
-	plt.subplot(412)
-	plt.plot(vis1[:,0])
-	plt.axhline(y=med_vis[0,0], color='red', linestyle='-')
-	plt.subplot(413)
-	plt.plot(vis1[:,1])
-	plt.axhline(y=med_vis[0,1], color='red', linestyle='-')
-	plt.subplot(414)
-	plt.plot(vis1[:,2])
-	plt.axhline(y=med_vis[0,2], color='red', linestyle='-')
-	plt.show()
-
-def massive_check(subject) :	
-	directory = '~/expego/birrap/databirapp/'+subject+'/'
+def specific_check(subject,PI,session) :
+	directory = '~/expego/birapp/databirapp/'+subject+'/'
 	directory = os.path.expanduser(directory)
 	viseur_file = 'viseur.csv'
+	PI_file = 'PI.csv'
+	PI_directory = directory+PI
+	viseur_file_directory = PI_directory + '/' + session + '/' + viseur_file
+	PI_file_directory = PI_directory + '/' + session + '/' + PI_file
+	print(viseur_file_directory)
+	print(PI_file_directory)
+	print('Number of clusters for Kmean algo :')
+	Nkmean = raw_input()
+	viseur = mocap_extract(viseur_file_directory)
+	PI = mocap_extract(PI_file_directory)
+	viseur_filt, viseur_speed_pb = viseur_filter(viseur)
+	ax,med_vis = points_extract_pos(viseur_filt,viseur_speed_pb,int(Nkmean),True)
+	ax, Pi_med = PI_filter(PI,ax)
+	plt.show()
+	pass
+def massive_check(subject) :	
+	directory = '~/expego/birapp/databirapp/'+subject+'/'
+	directory = os.path.expanduser(directory)
+	viseur_file = 'viseur.csv'
+	PI_file = 'PI.csv'
+	print(directory)
+	print('Number of clusters for Kmean algo :')
+	Nkmean = raw_input()
 	for filename in os.listdir(directory):
 			PI_directory = directory+filename
 			if os.path.isdir(PI_directory) :
 				for session in ['1','2'] :
-					try :
-						file_directory = PI_directory + '/' + session + '/' + viseur_file
-						print(file_directory)
-						viseur = mocap_extract(file_directory)
+					#~ try :
+						viseur_file_directory = PI_directory + '/' + session + '/' + viseur_file
+						PI_file_directory = PI_directory + '/' + session + '/' + PI_file
+						print(viseur_file_directory)
+						print(PI_file_directory)	
+						viseur = mocap_extract(viseur_file_directory)
+						PI = mocap_extract(PI_file_directory)
 						viseur_filt, viseur_speed_pb = viseur_filter(viseur)
-						points_extract_pos(viseur_filt,viseur_speed_pb)
-					except :
+						ax,med_vis = points_extract_pos(viseur_filt,viseur_speed_pb,int(Nkmean),True)
+						ax, Pi_med = PI_filter(PI,ax)
+						plt.show()
+					#~ except :
 						pass
 					
-					
+def add_subject_to_results(subject,results_dic) :
+	results_dic[subject] = {}
+	directory = '~/expego/birapp/databirapp/'+subject+'/'
+	directory = os.path.expanduser(directory)
+	print(directory)
+	print('Number of clusters for Kmean algo :')
+	Nkmean = raw_input()
+	viseur_file = 'viseur.csv'
+	PI_file = 'PI.csv'
+	for filename in os.listdir(directory):
+			results_dic[subject][filename] = {}
+			PI_directory = directory+filename
+			if os.path.isdir(PI_directory) :
+				for session in ['1','2'] :
+					try :
+						results_dic[subject][filename][session] = {}
+						viseur_file_directory = PI_directory + '/' + session + '/' + viseur_file
+						PI_file_directory = PI_directory + '/' + session + '/' + PI_file
+						print(viseur_file_directory)
+						print(PI_file_directory)
+						viseur = mocap_extract(viseur_file_directory)
+						PI = mocap_extract(PI_file_directory)
+						viseur_filt, viseur_speed_pb = viseur_filter(viseur)
+						ax,med_vis = points_extract_pos(viseur_filt,viseur_speed_pb,int(Nkmean),0)
+						ax, med_PI = 	PI_filter(PI,ax)
+						results_dic[subject][filename][session]['viseur'] = med_vis
+						results_dic[subject][filename][session]['PI'] = med_PI
+					except :
+						print(PI_directory + '-------------------->*******FAILED********')
+	return results_dic
+		
+def build_results_dic() :
+	results_dic = {}
+	directory = '~/expego/birapp/databirapp/'
+	directory = os.path.expanduser(directory)
+	for subjects in os.listdir(directory) :
+		add_subject_to_results(subjects,results_dic)
+	return results_dic
+		
+def extract_colinearity(viseur_array,PI_array):
+	# colinearity of the targets implies coplanarity of vis1, vis2, vis3, vis4 and PI
+	# first check for coplanarity of vis1, vis2, vis3 and PI and then vis1, vis2, vis4 and PI
+	vis1 = viseur_array[0,:]
+	vis2 = viseur_array[1,:]
+	vis3 = viseur_array[2,:]
+	vis4 = viseur_array[3,:]
+	col1 = np.dot(np.cross((vis2-vis1),(PI_array-vis3)),(vis3-vis1))
+	col2 = np.dot(np.cross((vis2-vis1),(PI_array-vis4)),(vis4-vis1))
+	tot_col = np.sqrt(col1*col1+col2*col2)
+	return tot_col
+	
+def extract_birapp(viseur_array,PI_array) :
+	# computing birapp without taking care of colinearity
+	vis1 = viseur_array[0,:]
+	vis2 = viseur_array[1,:]
+	vis3 = viseur_array[2,:]
+	vis4 = viseur_array[3,:]
+	PI_vis1 = vis1-PI_array
+	PI_vis2 = vis2-PI_array
+	PI_vis3 = vis3-PI_array
+	PI_vis4 = vis4-PI_array
+	sin_PIvis1_PIvis2 = np.sin(np.arctan2(np.linalg.norm(np.cross(PI_vis1,PI_vis2)),np. dot(PI_vis1,PI_vis2)))
+	sin_PIvis1_PIvis4 = np.sin(np.arctan2(np.linalg.norm(np.cross(PI_vis1,PI_vis4)),np. dot(PI_vis1,PI_vis4)))
+	sin_PIvis2_PIvis3 = np.sin(np.arctan2(np.linalg.norm(np.cross(PI_vis2,PI_vis3)),np. dot(PI_vis2,PI_vis3)))
+	sin_PIvis3_PIvis4 = np.sin(np.arctan2(np.linalg.norm(np.cross(PI_vis3,PI_vis4)),np. dot(PI_vis3,PI_vis4)))
+	birapp = sin_PIvis1_PIvis2/sin_PIvis1_PIvis4/(sin_PIvis2_PIvis3/sin_PIvis3_PIvis4)
+	realbirapp1 = 1./7./(2./4.)
+	realbirapp2 = 1./7./(4./2.)
+	return birapp,realbirapp1, realbirapp2
+	
+def label_trials(subject) :
+	directory = '~/expego/birapp/databirapp/'+subject+'/'
+	directory = os.path.expanduser(directory)
+	labeled_trials = open(directory+'/labeld_trials.txt','w')
+	viseur_file = 'viseur.csv'
+	PI_file = 'PI.csv'
+	print(directory)
+	print('Number of clusters for Kmean algo :')
+	Nkmean = raw_input()
+	labeled_trials.write('Number of culster for Kmean : {0} \n'.format(Nkmean))
+	for filename in os.listdir(directory):
+			PI_directory = directory+filename
+			if os.path.isdir(PI_directory) :
+				for session in ['1','2'] :
+					#~ try :
+						viseur_file_directory = PI_directory + '/' + session + '/' + viseur_file
+						PI_file_directory = PI_directory + '/' + session + '/' + PI_file
+						print(viseur_file_directory)
+						print(PI_file_directory)
+						viseur = mocap_extract(viseur_file_directory)
+						PI = mocap_extract(PI_file_directory)
+						viseur_filt, viseur_speed_pb = viseur_filter(viseur)
+						ax,med_vis = points_extract_pos(viseur_filt,viseur_speed_pb,int(Nkmean),True)
+						ax, Pi_med = PI_filter(PI,ax)
+						plt.show()
+						label_trial = '2'
+						while label_trial != '1'and label_trial != '0' :  
+							print('Label this trial : 1 = good, 0 = bad :')
+							label_trial = raw_input()
+						label_line = (filename+','+session+','+'label : '+label_trial+'\n')
+						labeled_trials.write(label_line)
+						
+					#~ except :
+						pass
+				labeled_trials.close
 def main(argv) :
-	directory = '~/expego/birrap/databirapp/kevin/EpauleD/1/PI.csv'
+	directory = '~/expego/birapp/databirapp/kevin/EpauleD/1/PI.csv'
 	directory = os.path.expanduser(directory)
 	PI = mocap_extract(directory)
-	directory = '~/expego/birrap/databirapp/kevin/Tete/2/viseur.csv'
+	directory = '~/expego/birapp/databirapp/kevin/Tete/2/viseur.csv'
 	directory = os.path.expanduser(directory)
 	viseur = mocap_extract(directory)
 	#~ viseur_animation(viseur)
 	#~ viseur_filt, viseur_speed_pb = viseur_filter(viseur)
 	#~ points_extract_speed(viseur_speed_pb)
 	#~ points_extract_pos(viseur_filt,viseur_speed_pb)
-	massive_check('galo')
-	
+	#~ results_dic = add_subject_to_results('galo',results_dic)
+	#~ massive_check('galo')
+	label_trials('galo')
+	results_dic = build_results_dic()
+	viseur_array = results_dic['galo']['Tete']['1']['viseur']
+	PI_array = results_dic['galo']['Tete']['1']['PI']
+	tot_col = extract_colinearity(viseur_array,PI_array)
+	birapp, realbirapp1, realbirapp2 = extract_birapp(viseur_array,PI_array)
+	embed()
 if __name__ == '__main__':
 	main(sys.argv)
