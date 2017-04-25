@@ -1,15 +1,17 @@
-donnees = read.csv2('results.csv',sep=",",dec=".")
-summary(donnees)
-donnees$Condition <- with(donnees, reorder(Condition, Resultat, mean))
-mod.rm<-aov(Resultat ~ Condition + Error(Sujets/Condition), data=donnees)
+donnees1 = read.csv2('stats_birapp1.csv',sep=";",dec=".")
+summary(donnees1)
+donnees1$Sujet<-as.factor(donnees1$Sujet)
+summary(donnees1)
+
+mod.rm<-aov(Resultat ~ Condition + Error(Sujet/Condition), data=donnees1)
 summary(mod.rm)
 
-boxplot(donnees$Resultat~donnees$Condition)
+boxplot(donnees1$Resultat~donnees1$Condition)
 
 
 library(ez)
 
-aov.rm <- ezANOVA(donnees,
+aov.rm <- ezANOVA(donnees1,
 dv = Resultat,
 wid= Sujets,
 between =,
@@ -19,7 +21,7 @@ return_aov=TRUE)
 
 aov.rm
 
-aov.fig <- ezPlot(donnees,
+aov.fig <- ezPlot(donnees1,
 dv = .(Resultat),
 wid= .(Sujets),
 between= ,
@@ -36,7 +38,7 @@ par(mar=c(20,20,4,4))
 par(pin=c(20,10))
 par(mgp=c(10,1,.5))
 par(cex.axis=2)
-boxplot(donnees$Resultat~donnees$Condition,las=2,outline=TRUE)
+boxplot(donnees1$Resultat~donnees1$Condition,las=2,outline=TRUE)
 mtext("Score moyen", side = 2, line = 15, outer = FALSE, cex = 2.5)
 mtext("Partie du corps", side = 1, line = 13, outer = FALSE, cex = 2.5)
 dev.off()

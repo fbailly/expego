@@ -1,0 +1,21 @@
+Number of culster for Kmean : 8
+Bassin,1,label : 1
+Bassin,2,label : 1
+ChevilleD,1,label : 1
+ChevilleD,2,label : 1
+ChevilleG,1,label : 1
+ChevilleG,2,label : 1
+CoudeG,1,label : 1
+CoudeG,2,label : 1
+EpauleD,1,label : 1
+EpauleD,2,label : 1
+EpauleG,1,label : 1
+EpauleG,2,label : 1
+GenouxD,1,label : 1
+GenouxD,2,label : 1
+GenouxG,1,label : 1
+GenouxG,2,label : 1
+PoignetG,1,label : 1
+PoignetG,2,label : 1
+Tete,1,label : 1
+Tete,2,label : 1

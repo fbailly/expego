@@ -4,6 +4,7 @@ import os
 import csv
 import numpy as np
 import scipy as sp
+import pickle
 from scipy import signal
 from IPython import embed
 import matplotlib.pyplot as plt
@@ -238,7 +239,7 @@ def specific_check(subject,PI,session) :
 	ax,med_vis = points_extract_pos(viseur_filt,viseur_speed_pb,int(Nkmean),True)
 	ax, Pi_med = PI_filter(PI,ax)
 	plt.show()
-	pass
+
 def massive_check(subject) :	
 	directory = '~/expego/birapp/databirapp/'+subject+'/'
 	directory = os.path.expanduser(directory)
@@ -278,7 +279,7 @@ def add_subject_to_results(subject,results_dic) :
 			results_dic[subject][filename] = {}
 			PI_directory = directory+filename
 			if os.path.isdir(PI_directory) :
-				for session in ['1','2'] :
+				for session in ['1','2','3'] :
 					try :
 						results_dic[subject][filename][session] = {}
 						viseur_file_directory = PI_directory + '/' + session + '/' + viseur_file
@@ -301,7 +302,10 @@ def build_results_dic() :
 	directory = '~/expego/birapp/databirapp/'
 	directory = os.path.expanduser(directory)
 	for subjects in os.listdir(directory) :
-		add_subject_to_results(subjects,results_dic)
+		if os.path.isdir(directory+subjects) :
+			nkmean_subject = read_nkmean(subjects)
+			print('Optimal number of cluster for {0} is {1}'.format(subjects,str(nkmean_subject)))
+			add_subject_to_results(subjects,results_dic)
 	return results_dic
 		
 def extract_colinearity(viseur_array,PI_array):
@@ -313,9 +317,24 @@ def extract_colinearity(viseur_array,PI_array):
 	vis4 = viseur_array[3,:]
 	col1 = np.dot(np.cross((vis2-vis1),(PI_array-vis3)),(vis3-vis1))
 	col2 = np.dot(np.cross((vis2-vis1),(PI_array-vis4)),(vis4-vis1))
-	tot_col = np.sqrt(col1*col1+col2*col2)
+	tot_col = 1./np.sqrt(col1*col1+col2*col2)
 	return tot_col
 	
+def get_numbers() :
+	directory = '~/expego/birapp/databirapp/'
+	directory = os.path.expanduser(directory)
+	nb_sb = len(os.listdir(directory))
+	for session in ['1','2'] :
+		for subjects in os.listdir(directory) :
+			if os.path.isdir(directory+subjects) :
+				sub_directory = '~/expego/birapp/databirapp/'+subjects+'/'
+				sub_directory = os.path.expanduser(sub_directory)
+				i = 0
+				for filename in os.listdir(sub_directory):	
+					if os.path.isdir(sub_directory+filename) :	
+						i +=1
+		nb_PI = i
+	return nb_sb, nb_PI
 def extract_birapp(viseur_array,PI_array) :
 	# computing birapp without taking care of colinearity
 	vis1 = viseur_array[0,:]
@@ -326,30 +345,37 @@ def extract_birapp(viseur_array,PI_array) :
 	PI_vis2 = vis2-PI_array
 	PI_vis3 = vis3-PI_array
 	PI_vis4 = vis4-PI_array
-	sin_PIvis1_PIvis2 = np.sin(np.arctan2(np.linalg.norm(np.cross(PI_vis1,PI_vis2)),np. dot(PI_vis1,PI_vis2)))
-	sin_PIvis1_PIvis4 = np.sin(np.arctan2(np.linalg.norm(np.cross(PI_vis1,PI_vis4)),np. dot(PI_vis1,PI_vis4)))
-	sin_PIvis2_PIvis3 = np.sin(np.arctan2(np.linalg.norm(np.cross(PI_vis2,PI_vis3)),np. dot(PI_vis2,PI_vis3)))
-	sin_PIvis3_PIvis4 = np.sin(np.arctan2(np.linalg.norm(np.cross(PI_vis3,PI_vis4)),np. dot(PI_vis3,PI_vis4)))
+	PIvis1_PIvis2 = np.arctan2(np.linalg.norm(np.cross(PI_vis1,PI_vis2)),np.dot(PI_vis1,PI_vis2))
+	PIvis2_PIvis3 = np.arctan2(np.linalg.norm(np.cross(PI_vis2,PI_vis3)),np.dot(PI_vis2,PI_vis3))
+	PIvis3_PIvis4 = np.arctan2(np.linalg.norm(np.cross(PI_vis3,PI_vis4)),np.dot(PI_vis3,PI_vis4))
+	PIvis1_PIvis4 = PIvis1_PIvis2+PIvis2_PIvis3+PIvis3_PIvis4
+	sin_PIvis1_PIvis2 = np.sin(PIvis1_PIvis2)
+	sin_PIvis2_PIvis3 = np.sin(PIvis2_PIvis3)
+	sin_PIvis3_PIvis4 = np.sin(PIvis3_PIvis4)
+	sin_PIvis1_PIvis4 = np.sin(PIvis1_PIvis4)
+	# premiere methode pour calculer le birapport
+	sin_PIvis1_PIvis2 = np.sin(np.arctan2(np.linalg.norm(np.cross(PI_vis1,PI_vis2)),np.dot(PI_vis1,PI_vis2)))
+	sin_PIvis1_PIvis4 = np.sin(np.arctan2(np.linalg.norm(np.cross(PI_vis1,PI_vis4)),np.dot(PI_vis1,PI_vis4)))
+	sin_PIvis2_PIvis3 = np.sin(np.arctan2(np.linalg.norm(np.cross(PI_vis2,PI_vis3)),np.dot(PI_vis2,PI_vis3)))
+	sin_PIvis3_PIvis4 = np.sin(np.arctan2(np.linalg.norm(np.cross(PI_vis3,PI_vis4)),np.dot(PI_vis3,PI_vis4)))
 	birapp = sin_PIvis1_PIvis2/sin_PIvis1_PIvis4/(sin_PIvis2_PIvis3/sin_PIvis3_PIvis4)
-	realbirapp1 = 1./7./(2./4.)
-	realbirapp2 = 1./7./(4./2.)
-	return birapp,realbirapp1, realbirapp2
+	return birapp
 	
 def label_trials(subject) :
 	directory = '~/expego/birapp/databirapp/'+subject+'/'
 	directory = os.path.expanduser(directory)
-	labeled_trials = open(directory+'/labeld_trials.txt','w')
+	labeled_trials = open(directory+'/labeled_trials.txt','w')
 	viseur_file = 'viseur.csv'
 	PI_file = 'PI.csv'
 	print(directory)
 	print('Number of clusters for Kmean algo :')
 	Nkmean = raw_input()
-	labeled_trials.write('Number of culster for Kmean : {0} \n'.format(Nkmean))
+	labeled_trials.write('Number of culster for Kmean : {0}\n'.format(Nkmean))
 	for filename in os.listdir(directory):
 			PI_directory = directory+filename
 			if os.path.isdir(PI_directory) :
-				for session in ['1','2'] :
-					#~ try :
+				for session in ['1','2','3'] :
+					try :
 						viseur_file_directory = PI_directory + '/' + session + '/' + viseur_file
 						PI_file_directory = PI_directory + '/' + session + '/' + PI_file
 						print(viseur_file_directory)
@@ -367,28 +393,193 @@ def label_trials(subject) :
 						label_line = (filename+','+session+','+'label : '+label_trial+'\n')
 						labeled_trials.write(label_line)
 						
-					#~ except :
-						pass
+					except :
+						print('An error occured : probably no such file or directory {0}: '.format(PI_directory+'/'+session))
+						print('Automatically labeled 0')
+						label_line = (filename+','+session+','+'label : 0\n')
+						labeled_trials.write(label_line)
+						pass 
 				labeled_trials.close
+				
+def read_nkmean(subject) :
+	directory = '~/expego/birapp/databirapp/'+subject+'/'
+	directory = os.path.expanduser(directory)
+	labeled_trials = open(directory+'/labeled_trials.txt','r')
+	nkmean_file = labeled_trials.readline()
+	nkmean_subject = int(nkmean_file[-2])
+	return nkmean_subject
+	
+def print_birapp(results_dic) :
+	
+	directory = '~/expego/birapp/databirapp/'
+	directory = os.path.expanduser(directory)
+	birapp_results_1 = []
+	col_results_1 = []
+	header_results_1 = []
+	birapp_results_2 = []
+	col_results_2 = []
+	header_results_2 = []
+	for session in ['1','2'] :
+		for subjects in os.listdir(directory) :
+			sub_directory = '~/expego/birapp/databirapp/'+subjects+'/'
+			sub_directory = os.path.expanduser(sub_directory)
+			for filename in os.listdir(sub_directory):
+				try : 
+					viseur_array = results_dic[subjects][filename][session]['viseur']
+					PI_array = results_dic[subjects][filename][session]['PI']
+					tot_col = extract_colinearity(viseur_array,PI_array)
+					birapp, realbirapp1, realbirapp2 = extract_birapp(viseur_array,PI_array)
+					if int(session) == 1 :
+						birapp_results_1 += [birapp]
+						col_results_1 += [tot_col]
+						header_results_1 += [subjects+' '+filename+' '+session]
+					if int(session) == 2 :
+						birapp_results_2 += [birapp]
+						col_results_2 += [tot_col]
+						header_results_2 += [subjects+' '+filename+' '+session]
+				except :
+					print filename
+	return birapp_results_1, col_results_1, header_results_1,birapp_results_2, col_results_2, header_results_2 
+	
+def build_result_table(results_dic,nb_sb,nb_PI,PI_list) :
+	directory = '~/expego/birapp/databirapp/'
+	directory = os.path.expanduser(directory)
+	birapp_table_1 = np.zeros([nb_sb,nb_PI])
+	birapp_table_2 = np.zeros([nb_sb,nb_PI])
+	col_table_1 = np.zeros([nb_sb,nb_PI])
+	col_table_2 = np.zeros([nb_sb,nb_PI])
+	birapp_table_3 = np.zeros([nb_sb,nb_PI])
+	col_table_3 = np.zeros([nb_sb,nb_PI])
+	for session in ['1','2','3'] :
+		i = 0
+		subjects_list = []
+		for subjects in os.listdir(directory) :
+			if os.path.isdir(directory+subjects) :
+				subjects_list += [subjects] 
+				sub_directory = '~/expego/birapp/databirapp/'+subjects+'/'
+				sub_directory = os.path.expanduser(sub_directory)
+				j = 0
+				for filename in PI_list:
+					if os.path.isdir(sub_directory+filename) :
+						try :
+							viseur_array = results_dic[subjects][filename][session]['viseur']
+							PI_array = results_dic[subjects][filename][session]['PI']
+							tot_col = extract_colinearity(viseur_array,PI_array)
+							birapp = extract_birapp(viseur_array,PI_array)
+							if int(session) == 1 :
+								birapp_table_1[i,j] = birapp
+								col_table_1[i,j] = tot_col
+							if int(session) == 2 :					
+								birapp_table_2[i,j] = birapp
+								col_table_2[i,j] = tot_col
+							if int(session) == 3 :					
+								birapp_table_3[i,j] = birapp
+								col_table_3[i,j] = tot_col
+						except :
+							print('error')
+							print(filename+subjects+session)
+							if int(session) == 1 :
+								birapp_table_1[i,j] = np.nan
+								col_table_1[i,j] = np.nan
+							if int(session) == 2 :					
+								birapp_table_2[i,j] = np.nan
+								col_table_2[i,j] = np.nan
+							if int(session) == 3 :					
+								birapp_table_3[i,j] = np.nan
+								col_table_3[i,j] = np.nan
+						j += 1
+				i += 1
+	mask_trial_1,mask_trial_2,mask_trial_3 = mask_trial(nb_sb,nb_PI)
+	birapp_table_1 = np.multiply(birapp_table_1,mask_trial_1) 
+	birapp_table_2 = np.multiply(birapp_table_2,mask_trial_2) 
+	col_table_1 = np.multiply(col_table_1,mask_trial_1) 
+	col_table_2 = np.multiply(col_table_2,mask_trial_2) 
+	birapp_table_3 = np.multiply(birapp_table_3,mask_trial_3) 
+	col_table_3 = np.multiply(col_table_3,mask_trial_3) 
+	return birapp_table_1,birapp_table_2,birapp_table_3,col_table_1,col_table_2,col_table_3, subjects_list,PI_list
+					
+def save_dic(dic,filedic) :
+	with open(filedic+'.pickle', 'wb') as handle:
+		pickle.dump(dic, handle, protocol=pickle.HIGHEST_PROTOCOL)
+def load_dic(filedic) :
+	with open(filedic+'.pickle', 'rb') as handle:
+		dic = pickle.load(handle)
+	return dic	
+	
+def mask_trial(nb_sb,nb_PI) :
+	directory = '~/expego/birapp/databirapp/'
+	directory = os.path.expanduser(directory)
+	mask_trial_1 = np.empty([nb_sb,nb_PI])
+	mask_trial_2 = np.empty([nb_sb,nb_PI])
+	mask_trial_3 = np.empty([nb_sb,nb_PI])
+	i = 0
+	for subjects in os.listdir(directory) :
+		if os.path.isdir(directory+subjects) :
+			sub_directory = directory+subjects+'/'
+			labeled_trials = open(sub_directory+'/labeled_trials.txt','r')
+			j = 0
+			k = 0
+			l = 0
+			lines = iter(labeled_trials)
+			lines.next() # Skip line.
+			for line in lines :
+				line_split = line.split(',')
+				if line_split[1] == '1' :
+					mask_trial_1[i,j] = int(line[-2])
+					j += 1
+				elif line_split[1] == '2' :
+					mask_trial_2[i,k] = int(line[-2])
+					k += 1
+				elif line_split[1] == '3' :
+					mask_trial_3[i,l] = int(line[-2])
+					l += 1
+				else : print('error split')
+			i += 1
+	mask_trial_1 = np.where(mask_trial_1==1,mask_trial_1,np.nan)
+	mask_trial_2 = np.where(mask_trial_2==1,mask_trial_2,np.nan)
+	mask_trial_3 = np.where(mask_trial_3==1,mask_trial_3,np.nan)
+	return mask_trial_1,mask_trial_2,mask_trial_3
+
+def export_stats(birapp_table_1,birapp_table_2,subjects_list,PI_list,nb_sb,nb_PI) :
+	
+	directory = '~/expego/birapp/resultbirapp/'
+	directory = os.path.expanduser(directory)
+	stats_birapp1 = open(directory+'stats_birapp1.csv','w')
+	stats_birapp2 = open(directory+'stats_birapp2.csv','w')
+	#~ stats_birapp3 = open(directory+'stats_birapp3.csv','w')
+	stats_birapp1.write('Sujet;Condition;Resultat\n')
+	stats_birapp2.write('Sujet;Condition;Resultat\n')
+	#~ stats_birapp3.write('Sujet;Condition;Resultat\n')
+	for i in range(nb_sb) :
+		for j in range(nb_PI) :
+			line_to_write1 = '{0};{1};{2}\n'.format(i+1,PI_list[j],birapp_table_1[i,j])
+			line_to_write2 = '{0};{1};{2}\n'.format(i+1,PI_list[j],birapp_table_2[i,j])
+			#~ line_to_write3 = '{0};{1};{2}\n'.format(i+1,PI_list[j],birapp_table_3[i,j])
+			stats_birapp1.write(line_to_write1)
+			stats_birapp2.write(line_to_write2)
+			#~ stats_birapp3.write(line_to_write3)
+	stats_birapp1.close
+	stats_birapp2.close
+	#~ stats_birapp3.close
+	
 def main(argv) :
-	directory = '~/expego/birapp/databirapp/kevin/EpauleD/1/PI.csv'
-	directory = os.path.expanduser(directory)
-	PI = mocap_extract(directory)
-	directory = '~/expego/birapp/databirapp/kevin/Tete/2/viseur.csv'
-	directory = os.path.expanduser(directory)
-	viseur = mocap_extract(directory)
-	#~ viseur_animation(viseur)
+	PI_list = ['Bassin','ChevilleD', 'ChevilleG', 'CoudeG', 'EpauleD', 'EpauleG', 'GenouxD', 'GenouxG', 'PoignetG', 'Tete']
+	np.set_printoptions(linewidth=150,precision=4)
+	nb_sb,nb_PI = get_numbers()
+	realbirapp1 = 1./7./(2./4.)
+	realbirapp2 = 1./7./(4./2.)
 	#~ viseur_filt, viseur_speed_pb = viseur_filter(viseur)
 	#~ points_extract_speed(viseur_speed_pb)
 	#~ points_extract_pos(viseur_filt,viseur_speed_pb)
 	#~ results_dic = add_subject_to_results('galo',results_dic)
 	#~ massive_check('galo')
-	label_trials('galo')
-	results_dic = build_results_dic()
-	viseur_array = results_dic['galo']['Tete']['1']['viseur']
-	PI_array = results_dic['galo']['Tete']['1']['PI']
-	tot_col = extract_colinearity(viseur_array,PI_array)
-	birapp, realbirapp1, realbirapp2 = extract_birapp(viseur_array,PI_array)
+	# Pour regarder chaque essai d'un sujet :
+	#~ label_trials('celine')
+	#~ results_dic = build_results_dic()
+	#~ save_dic(results_dic,'results_dic')
+	results_dic = load_dic('results_dic')
+	birapp_table_1,birapp_table_2,birapp_table_3,col_table_1,col_table_2,col_table_3, subjects_list,PI_list = build_result_table(results_dic,nb_sb,nb_PI,PI_list) 
+	export_stats(birapp_table_1,birapp_table_2,subjects_list,PI_list,nb_sb,nb_PI)
 	embed()
 if __name__ == '__main__':
 	main(sys.argv)
