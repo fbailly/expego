@@ -550,7 +550,12 @@ def export_stats(birapp_table_1,birapp_table_2,subjects_list,PI_list,nb_sb,nb_PI
 	stats_birapp1.write('Sujet;Condition;Resultat\n')
 	stats_birapp2.write('Sujet;Condition;Resultat\n')
 	#~ stats_birapp3.write('Sujet;Condition;Resultat\n')
-	for i in range(nb_sb) :
+	exclude_subject = ['celine','kevin','dinesh']
+	exclude_subject = ['celine','kevin','dinesh']
+	subject_idx = range(nb_sb)
+	for i in range(len(exclude_subject)) :
+		subject_idx.remove(subjects_list.index(exclude_subject[i]))		
+	for i in subject_idx :
 		for j in range(nb_PI) :
 			line_to_write1 = '{0};{1};{2}\n'.format(i+1,PI_list[j],birapp_table_1[i,j])
 			line_to_write2 = '{0};{1};{2}\n'.format(i+1,PI_list[j],birapp_table_2[i,j])
@@ -566,8 +571,8 @@ def main(argv) :
 	PI_list = ['Bassin','ChevilleD', 'ChevilleG', 'CoudeG', 'EpauleD', 'EpauleG', 'GenouxD', 'GenouxG', 'PoignetG', 'Tete']
 	np.set_printoptions(linewidth=150,precision=4)
 	nb_sb,nb_PI = get_numbers()
-	realbirapp1 = 1./7./(2./4.)
-	realbirapp2 = 1./7./(4./2.)
+	realbirapp1 = 2./10./(3./5.)
+	realbirapp2 = 2./10./(5./3.)
 	#~ viseur_filt, viseur_speed_pb = viseur_filter(viseur)
 	#~ points_extract_speed(viseur_speed_pb)
 	#~ points_extract_pos(viseur_filt,viseur_speed_pb)
