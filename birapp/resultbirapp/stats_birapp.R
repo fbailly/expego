@@ -1,59 +1,42 @@
-donnees1 = read.csv2('stats_birapp1.csv',sep=";",dec=".")
+donnees1 = read.csv2('stats_birapp1.csv',sep=",",dec=".")
 summary(donnees1)
+donnees1 = na.omit(donnees1)
 donnees1$Sujet<-as.factor(donnees1$Sujet)
 summary(donnees1)
 mod.rm<-aov(Resultat ~ Condition + Error(Sujet/Condition), data=donnees1)
 summary(mod.rm)
-boxplot(donnees1$Resultat~donnees1$Condition)
-abline(h = 0.2857, col = "red")
-
-
-pairwise.t.test(donnees1$Resultat,donnees1$Condition,
-p.adj = "bonferroni",pool.sd = FALSE, paired=TRUE)
+boxplot(donnees1$Resultat~donnees1$Condition,cex.axis=1.5)
+abline(h = 0.333, col = "red")
 
 
 donnees2 = read.csv2('stats_birapp2.csv',sep=";",dec=".")
 summary(donnees2)
+donnees2 = na.omit(donnees2)
 donnees2$Sujet<-as.factor(donnees2$Sujet)
 summary(donnees2)
 mod.rm<-aov(Resultat ~ Condition + Error(Sujet/Condition), data=donnees2)
 summary(mod.rm)
-boxplot(donnees2$Resultat~donnees2$Condition)
+boxplot(donnees2$Resultat~donnees2$Condition,cex.axis=1.5)
+abline(h = 0.12, col = "red")
 
 pairwise.t.test(donnees2$Resultat,donnees2$Condition,
 p.adj = "bonferroni",pool.sd = FALSE, paired=TRUE)
 
 
-library(ez)
+Tete1 = subset(donnees1,Condition=="Tete")
+Bassin1 = subset(donnees1,Condition=="Bassin")
+GenouxG1 = subset(donnees1,Condition=="GenouxG")
+EpauleG1 = subset(donnees1,Condition=="EpauleG")
+t.test(x=Tete1[["Resultat"]], mu=0.3333333)
+t.test(x=Bassin1[["Resultat"]], mu=0.3333333)
+t.test(x=GenouxG1[["Resultat"]], mu=0.3333333)
+t.test(x=EpauleG1[["Resultat"]], mu=0.3333333)
 
-aov.rm <- ezANOVA(donnees1,
-dv = Resultat,
-wid= Sujet,
-between =,
-within= Condition,
-type = 3,
-return_aov=TRUE)
-
-aov.rm
-
-aov.fig <- ezPlot(donnees1,
-dv = .(Resultat),
-wid= .(Sujet),
-between= ,
-within = .(Condition),
-x = .(Condition),
-x_lab = 'Partie du corp',
-y_lab = 'Score total'
-)
-
-aov.fig
-
-pdf("stats.pdf",width=30,height=17)
-par(mar=c(20,20,4,4))
-par(pin=c(20,10))
-par(mgp=c(10,1,.5))
-par(cex.axis=2)
-boxplot(donnees1$Resultat~donnees1$Condition,las=2,outline=TRUE)
-mtext("Score moyen", side = 2, line = 15, outer = FALSE, cex = 2.5)
-mtext("Partie du corps", side = 1, line = 13, outer = FALSE, cex = 2.5)
-dev.off()
+Tete2 = subset(donnees2,Condition=="Tete")
+Bassin2 = subset(donnees2,Condition=="Bassin")
+GenouxG2 = subset(donnees2,Condition=="GenouxG")
+EpauleG2 = subset(donnees2,Condition=="EpauleG")
+t.test(x=Tete2[["Resultat"]], mu=0.12)
+t.test(x=Bassin2[["Resultat"]], mu=0.12)
+t.test(x=GenouxG2[["Resultat"]], mu=0.12)
+t.test(x=EpauleG2[["Resultat"]], mu=0.12)
