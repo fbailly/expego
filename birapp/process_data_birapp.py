@@ -550,8 +550,7 @@ def export_stats(birapp_table_1,birapp_table_2,subjects_list,PI_list,nb_sb,nb_PI
 	stats_birapp1.write('Sujet;Condition;Resultat\n')
 	stats_birapp2.write('Sujet;Condition;Resultat\n')
 	#~ stats_birapp3.write('Sujet;Condition;Resultat\n')
-	exclude_subject = ['celine','kevin','dinesh']
-	exclude_subject = ['celine','kevin','dinesh']
+	exclude_subject = ['celine','kevin','dinesh','flo']
 	subject_idx = range(nb_sb)
 	for i in range(len(exclude_subject)) :
 		subject_idx.remove(subjects_list.index(exclude_subject[i]))
@@ -587,7 +586,7 @@ def main(argv) :
 	#~ results_dic = add_subject_to_results('galo',results_dic)
 	#~ massive_check('galo')
 	# Pour regarder chaque essai d'un sujet :
-	#~ label_trials('celine')
+	#~ label_trials('mylene')
 	#~ results_dic = build_results_dic()
 	#~ save_dic(results_dic,'results_dic')
 	results_dic = load_dic('results_dic')
