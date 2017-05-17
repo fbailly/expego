@@ -7,6 +7,7 @@ import scipy as sp
 from IPython import embed
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+from scipy import signal
 
 def mocap_extract(filename) :
 	with open(filename, 'rb') as csvfile:

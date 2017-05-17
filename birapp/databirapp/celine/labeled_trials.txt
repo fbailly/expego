@@ -1,31 +1,30 @@
-Number of culster for Kmean : 8
-Bassin,1,label : 1
-Bassin,2,label : 0
-Bassin,3,label : 0
-ChevilleD,1,label : 1
-ChevilleD,2,label : 1
-ChevilleD,3,label : 1
-ChevilleG,1,label : 0
-ChevilleG,2,label : 1
-ChevilleG,3,label : 1
-CoudeG,1,label : 0
-CoudeG,2,label : 0
-CoudeG,3,label : 1
-EpauleD,1,label : 0
-EpauleD,2,label : 0
-EpauleD,3,label : 1
-EpauleG,1,label : 1
-EpauleG,2,label : 0
-EpauleG,3,label : 1
-GenouxD,1,label : 1
-GenouxD,2,label : 1
-GenouxD,3,label : 0
-GenouxG,1,label : 1
-GenouxG,2,label : 1
-GenouxG,3,label : 0
-PoignetG,1,label : 0
-PoignetG,2,label : 1
-PoignetG,3,label : 0
-Tete,1,label : 0
-Tete,2,label : 1
-Tete,3,label : 1
+Number of culster for Kmean,6,Bassin,1,label,1
+Number of culster for Kmean,NA,Bassin,2,label,0
+Number of culster for Kmean,10,Bassin,3,label,1
+Number of culster for Kmean,6,ChevilleD,1,label,1
+Number of culster for Kmean,10,ChevilleD,2,label,1
+Number of culster for Kmean,10,ChevilleD,3,label,1
+Number of culster for Kmean,10,ChevilleG,1,label,0
+Number of culster for Kmean,10,ChevilleG,2,label,1
+Number of culster for Kmean,10,ChevilleG,3,label,1
+Number of culster for Kmean,10,CoudeG,1,label,1
+Number of culster for Kmean,10,CoudeG,2,label,0
+Number of culster for Kmean,10,CoudeG,3,label,1
+Number of culster for Kmean,10,EpauleD,1,label,1
+Number of culster for Kmean,10,EpauleD,2,label,1
+Number of culster for Kmean,10,EpauleD,3,label,1
+Number of culster for Kmean,10,EpauleG,1,label,1
+Number of culster for Kmean,10,EpauleG,2,label,0
+Number of culster for Kmean,10,EpauleG,3,label,1
+Number of culster for Kmean,10,GenouxD,1,label,1
+Number of culster for Kmean,10,GenouxD,2,label,1
+Number of culster for Kmean,NA,GenouxD,3,label,0
+Number of culster for Kmean,10,GenouxG,1,label,1
+Number of culster for Kmean,10,GenouxG,2,label,1
+Number of culster for Kmean,NA,GenouxG,3,label,0
+Number of culster for Kmean,10,PoignetG,1,label,0
+Number of culster for Kmean,10,PoignetG,2,label,1
+Number of culster for Kmean,NA,PoignetG,3,label,0
+Number of culster for Kmean,10,Tete,1,label,0
+Number of culster for Kmean,10,Tete,2,label,1
+Number of culster for Kmean,10,Tete,3,label,1

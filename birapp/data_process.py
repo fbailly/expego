@@ -7,8 +7,8 @@ import scipy as sp
 from IPython import embed
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-
-
+from data_filters import *
+from extract_point import points_extract_pos_s
 
 def get_numbers() :
 	directory = '~/expego/birapp/databirapp/'
