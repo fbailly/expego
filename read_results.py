@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from mocap_align import mocap_extract, mocap_align_abs
 
+
+
 global balls_centersy
 global balls_centersx
 global mes_bplume
